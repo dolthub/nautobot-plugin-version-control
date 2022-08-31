@@ -119,7 +119,7 @@ class Branch(DoltSystemTable):
     def checkout(self):
         """Checkout performs a checkout operation to this branch making it the active_branch."""
         with connection.cursor() as cursor:
-            cursor.execute(f"""SELECT dolt_checkout("{self.name}") FROM dual;""")
+            cursor.execute(f"""CALL dolt_checkout("{self.name}");""")
 
     def _branch_meta(self):
         try:
@@ -145,32 +145,32 @@ class Branch(DoltSystemTable):
             cursor.execute("SET dolt_force_transaction_commit = 1;")
             if squash:
                 cursor.execute(
-                    f"""SELECT dolt_merge(
+                    f"""CALL dolt_merge(
                         '--squash',
                         '{merge_branch}'
-                    ) FROM dual;"""
+                    );"""
                 )
             else:
                 cursor.execute(
-                    f"""SELECT dolt_merge(
+                    f"""CALL dolt_merge(
                         '--no-ff',
                         '{merge_branch}'
-                    ) FROM dual;"""
+                    );"""
                 )
             success = cursor.fetchone()[0] == 1
             if success:
                 # only commit merged data on success
                 msg = f"""merged "{merge_branch}" into "{self.name}"."""
                 cursor.execute(
-                    f"""SELECT dolt_commit(
+                    f"""CALL dolt_commit(
                         '--all',
                         '--allow-empty',
                         '--message', '{msg}',
                         '--author', '{author}'
-                    ) FROM dual;"""
+                    );"""
                 )
             else:
-                cursor.execute("SELECT dolt_merge('--abort') FROM dual;")  # nosec
+                cursor.execute("CALL dolt_merge('--abort');")  # nosec
                 raise DoltError(
                     format_html(
                         "{}",
@@ -208,8 +208,8 @@ class BranchMeta(models.Model):
     the dolt_branches system table.
     """
 
-    branch = models.TextField(primary_key=True)
-    source_branch = models.TextField()
+    branch = models.CharField(primary_key=True, max_length=1024)
+    source_branch = models.CharField(max_length=1024)
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
@@ -253,7 +253,7 @@ class Commit(DoltSystemTable):
         """merge_base returns the ancestor commit between two commits."""
         with connection.cursor() as c:
             # author credentials not set
-            c.execute(f"SELECT DOLT_MERGE_BASE('{left}', '{right}') FROM dual;")
+            c.execute(f"SELECT dolt_merge_base('{left}', '{right}');")
             return c.fetchone()[0]
 
     @staticmethod
@@ -263,7 +263,7 @@ class Commit(DoltSystemTable):
         author = author_from_user(user)
         args += f", '--author', '{author}'"
         with connection.cursor() as c:
-            c.execute(f"SELECT DOLT_REVERT({args}) FROM dual;")
+            c.execute(f"CALL dolt_revert({args});")
             return c.fetchone()[0]
 
     @property
@@ -291,12 +291,11 @@ class Commit(DoltSystemTable):
         with conn.cursor() as cursor:
             cursor.execute(
                 f"""
-            SELECT dolt_commit(
+            CALL dolt_commit(
                 '--all',
                 '--allow-empty',
                 '--message', "{msg}",
-                '--author', "{author}")
-            FROM dual;"""
+                '--author', "{author}")"""
             )
 
 
@@ -379,8 +378,8 @@ class PullRequest(BaseModel):
     title = models.CharField(max_length=240)
     state = models.IntegerField(choices=PR_STATE_CHOICES, default=OPEN)
     # can't create Foreign Key to dolt_branches table :(
-    source_branch = models.TextField()
-    destination_branch = models.TextField()
+    source_branch = models.CharField(max_length=1024)
+    destination_branch = models.CharField(max_length=1024)
     description = models.TextField(blank=True, null=True)
     creator = models.ForeignKey(User, on_delete=CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
