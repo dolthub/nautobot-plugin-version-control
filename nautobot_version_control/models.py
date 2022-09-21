@@ -157,8 +157,8 @@ class Branch(DoltSystemTable):
                         '{merge_branch}'
                     );"""
                 )
-            success = cursor.fetchone()[0] == 1
-            if success:
+            res = cursor.fetchone()
+            if res[0] == 0 and res[1] == 0:
                 # only commit merged data on success
                 msg = f"""merged "{merge_branch}" into "{self.name}"."""
                 cursor.execute(
@@ -184,9 +184,15 @@ class Branch(DoltSystemTable):
         """Save overrides the model save method."""
         with connection.cursor() as cursor:
             cursor.execute(
-                f"""INSERT INTO dolt_branches (name,hash) VALUES ('{self.name}',hashof('{self.starting_branch}'));"""  # nosec
+                f"""CALL dolt_branch('{self.name}','{self.starting_branch}');"""  # nosec
             )
 
+    def delete(self, *args, **kwargs):
+        """Save overrides the model delete method."""
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"""CALL dolt_branch('-D','{self.name}');"""  # nosec
+            )
 
 @receiver(pre_delete, sender=Branch)
 def delete_branch_pre_hook(sender, instance, using, **kwargs):  # pylint: disable=W0613
