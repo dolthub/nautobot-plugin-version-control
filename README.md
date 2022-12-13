@@ -6,7 +6,7 @@ Nautobot provides a number of features to validate its data model and safeguard 
 
 The database versioning is made possible by the use of a [Dolt](https://github.com/dolthub/dolt) database. Dolt is a MySQL-compatible SQL database that you can fork, clone, branch, merge, push and pull just like a Git repository.
 
-Dolt’s *branch* and *merge* versioning model allows operators to safely modify the data model on feature branches, merging to production only after validation is complete.
+[Dolt’s](https://www.doltdb.com) *branch* and *merge* versioning model allows operators to safely modify the data model on feature branches, merging to production only after validation is complete. Check out Dolt's [website](https://www.dolthub.com), [team](https://www.dolthub.com/team), and [documentation](https://docs.dolthub.com/introduction/what-is-dolt) to learn more.
 
 ## Documentation
 
