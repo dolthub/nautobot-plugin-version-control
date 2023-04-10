@@ -18,3 +18,6 @@ FAQ.md
 tasks.py
 LICENSE
 **/*.log
+
+!development/dolt-config.yaml
+!development/dolt-on-start.sh

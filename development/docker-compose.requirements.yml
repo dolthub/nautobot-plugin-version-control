@@ -7,20 +7,23 @@ services:
       dockerfile: "development/Dockerfile-dolt"
     depends_on:
       - "golden"
-    command:
-      - "dolt"
-      - "--ignore-lock-file"
-      - "sql-server"
-      - "--config=/dolt-config.yaml"
-#      - "--golden=root:mypassword@tcp(golden:3366)/"
+    command: /bin/sh -c /var/lib/dolt-on-start.sh
     env_file:
       - "dev.env"
       - "creds.env"
     volumes:
-      - "dolt_data:/var/lib/nautobot"
-      - "./dolt-config.yaml:/dolt-config.yaml"
+      - "../test_data/dolt_dbs:/var/lib/nautobot_dbs"
+      - "../test_data/logs:/var/lib/logs"
+      - "./dolt-config.yaml:/var/lib/dolt-config.yaml"
+      - "./dolt-on-start.sh:/var/lib/dolt-on-start.sh"
     ports:
       - "3306:3306"
+    healthcheck:
+      test: dolt sql-client -u $$DOLT_USER -p $$DOLT_PASSWORD -q "show databases; select 'healthcheck';" --use-db $$DOLT_DB
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 50
   golden:
     image: mysql:8
     environment:
@@ -37,7 +40,7 @@ services:
     image: "redis:6-alpine"
     command:
       - "sh"
-      - "-c"  # this is to evaluate the $REDIS_PASSWORD from the env
+      - "-c" # this is to evaluate the $REDIS_PASSWORD from the env
       - "redis-server --appendonly yes --requirepass $$REDIS_PASSWORD"
     env_file:
       - "dev.env"

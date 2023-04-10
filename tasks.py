@@ -26,10 +26,10 @@ namespace = Collection("nautobot_version_control")
 namespace.configure(
     {
         "nautobot_version_control": {
-            "nautobot_ver": "1.4.2",
+            "nautobot_ver": "1.5.16",
             "project_name": "nautobot_version_control",
             "python_ver": "3.8",
-            "local": False,
+            "local": True,
             "compose_dir": os.path.join(os.path.dirname(__file__), "development"),
             "compose_files": [
                 "docker-compose.requirements.yml",
@@ -121,7 +121,7 @@ def build(context, force_rm=False, cache=True):
         command += " --no-cache"
     if force_rm:
         command += " --force-rm"
-
+    
     print(f"Building Nautobot with Python {context.nautobot_version_control.python_ver}...")
     docker_compose(context, command)
 

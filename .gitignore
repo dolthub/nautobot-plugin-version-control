@@ -312,3 +312,7 @@ creds.env
 
 # Invoke overrides
 invoke.yml
+
+# dolt
+test_data
+dolt_linux_amd64

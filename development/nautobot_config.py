@@ -10,6 +10,7 @@ import sys
 from distutils.util import strtobool
 from django.core.exceptions import ImproperlyConfigured
 from nautobot.core import settings
+from nautobot.core.settings_funcs import parse_redis_connection
 
 # Enforce required configuration parameters
 for key in [
@@ -263,12 +264,15 @@ PAGINATE_COUNT = int(os.environ.get("PAGINATE_COUNT", 50))
 
 # Enable installed plugins. Add the name of each plugin to the list.
 PLUGINS = [
-    # "nautobot_version_control",
+    "nautobot_version_control",
 ]
 
-# Pull the list of routers from environment variable to be able to disable all routers when we are running the migrations
-routers = os.getenv("DATABASE_ROUTERS", "").split(",")
-DATABASE_ROUTERS = routers if routers != [""] else []
+# # Pull the list of routers from environment variable to be able to disable all routers when we are running the migrations
+# routers = os.getenv("DATABASE_ROUTERS", "").split(",")
+# DATABASE_ROUTERS = routers if routers != [""] else []
+
+# Dolt requires a custom database router to generate the before & after queries for generating diffs.
+DATABASE_ROUTERS = ["dolt.routers.GlobalStateRouter"]
 
 # Plugins configuration settings. These settings are used by various plugins that the user may have installed.
 # Each key in the dictionary is the name of an installed plugin and its value is a dictionary of settings.
@@ -343,3 +347,19 @@ if "debug_toolbar" not in EXTRA_INSTALLED_APPS:
     EXTRA_INSTALLED_APPS.append("debug_toolbar")
 if "debug_toolbar.middleware.DebugToolbarMiddleware" not in settings.MIDDLEWARE:
     settings.MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+
+# Because Dolt creates branches of the database, the default database sessions cannot be used. We
+# must tell Nautobot to use Redis for sessions instead. This adds a distinct cache configuration for
+# using Redis cache for sessions.
+# See: https://github.com/jazzband/django-redis#configure-as-session-backend
+CACHES["sessions"] = {
+    "BACKEND": "django_redis.cache.RedisCache",
+    "LOCATION": parse_redis_connection(redis_database=2),
+    "TIMEOUT": 300,
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    },
+}
+
+# Use the sessions alias defined in CACHES for sessions caching
+SESSION_CACHE_ALIAS = "sessions"

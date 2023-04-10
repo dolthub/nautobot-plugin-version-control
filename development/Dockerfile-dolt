@@ -5,18 +5,29 @@ RUN apt update && apt install -y curl mariadb-client && \
     apt-get clean all && \
     rm -rf /var/lib/apt/lists/*
 
-ARG DOLT_RELEASE="v0.51.9"
-RUN curl -L https://github.com/dolthub/dolt/releases/download/${DOLT_RELEASE}/install.sh | bash
+RUN mkdir -p /var/lib/nautobot
+WORKDIR /var/lib/nautobot
+
+# use a specific version of dolt by downloading it from official releases
+# ARG DOLT_RELEASE="v0.52.19"
+# RUN curl -L https://github.com/dolthub/dolt/releases/download/${DOLT_RELEASE}/install.sh | bash
+
+# Uncomment the COPY command below to use a specific locally-built version of dolt.
+# To build this version of dolt, run the following (after replacing the [DOLT_REPO] and [NAUTOBOT_REPO] placeholders):
+#   cd [DOLT_REPO]/go/cmd/dolt
+#   GOOS=linux GOARCH=amd64 go build -o dolt_linux_amd64
+#   cp dolt_linux_amd64 [NAUTOBOT_REPO]/development/dolt_linux_amd64
+COPY ./development/dolt_linux_amd64 /usr/local/bin/dolt
 
 RUN dolt config --global --add user.name nautobot
 RUN dolt config --global --add user.email opensource@networktocode.COM
 
-RUN mkdir -p /var/lib/
-WORKDIR /var/lib
-RUN dolt sql -q "CREATE DATABASE nautobot CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
-RUN dolt sql -q "CREATE DATABASE test_nautobot CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
+# RUN dolt sql -q "CREATE DATABASE nautobot CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
+# RUN dolt sql -q "CREATE DATABASE test_nautobot CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 
 COPY ./development/dolt-config.yaml /var/lib/nautobot/dolt-config.yaml
+COPY ./development/dolt-on-start.sh /var/lib/nautobot/dolt-on-start.sh
+RUN chmod +x /var/lib/nautobot/dolt-on-start.sh
 
 EXPOSE 3306
 
