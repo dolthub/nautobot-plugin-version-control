@@ -188,7 +188,7 @@ class Branch(DoltSystemTable):
             )
 
     def delete(self, *args, **kwargs):
-        """Save overrides the model delete method."""
+        """Depete overrides the model delete method."""
         with connection.cursor() as cursor:
             cursor.execute(
                 f"""CALL dolt_branch('-D','{self.name}');"""  # nosec
@@ -197,8 +197,16 @@ class Branch(DoltSystemTable):
 @receiver(pre_delete, sender=Branch)
 def delete_branch_pre_hook(sender, instance, using, **kwargs):  # pylint: disable=W0613
     """
-    delete_branch_pre_hook intercepts the pre_delete signal for a branch. It returns an error if a branch that is about
-    to be delete has pull requests that have not been deleted before.
+    delete_branch_pre_hook intercepts the pre_delete signal for a branch, and always throws an exception.
+
+    delete_branch_pre_hook is called when a QuerySet of branches is about to be deleted.
+    When Django deletes from a QuerySet, Branch.delete is NOT called and instead Django attempts
+    to delete the object directly from the database using SQL. SQL deletion will always fail for Branch.
+    This means that we cannot intercept the delete call and cannot do a proper deletion.
+
+    So we will throw an appropriate exception:
+    - if the branch has pull requests associated with it, we throw an error with the PR information.
+    - otherwise, we throw an error explaining that the Branch objects must be deleted individually.
     """
     # search the pull requests models for the same branch
     prs = PullRequest.objects.filter(Q(source_branch=instance.name) | Q(destination_branch=instance.name))
@@ -206,6 +214,8 @@ def delete_branch_pre_hook(sender, instance, using, **kwargs):  # pylint: disabl
     if len(prs) > 0:
         pr_list = ",".join([f'"{pr}"' for pr in prs])
         raise DoltError(f"Must delete existing pull request(s): [{pr_list}] before deleting branch {instance.name}")
+
+    raise Exception("QuerySet deletion of Branch is not supported, please delete the items individually")
 
 
 class BranchMeta(models.Model):

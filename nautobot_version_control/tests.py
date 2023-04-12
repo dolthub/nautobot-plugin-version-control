@@ -36,7 +36,9 @@ class TestBranches(DoltTestCase):
 
     def tearDown(self):
         """tearDown is ran after every testcase."""
-        Branch.objects.exclude(name=self.default).delete()
+        # Branch QuerySet deletes are not supported, delete branches individually.
+        for branch in Branch.objects.exclude(name=self.default):
+            branch.delete()
 
     def test_default_branch(self):
         """test_default_branch asserts that the main branch exists and is preinitialized as the active branch."""
@@ -69,7 +71,9 @@ class TestBranches(DoltTestCase):
 
         # Delete the pr and try again
         PullRequest.objects.filter(title="My Review").delete()
-        Branch.objects.filter(name="todelete").delete()
+        # Branch QuerySet deletes are not supported, delete branches individually.
+        for branch in Branch.objects.filter(name="todelete"):
+            branch.delete()
         self.assertEqual(Branch.objects.filter(name="todelete").count(), 0)
 
     def test_merge_ff(self):
@@ -282,7 +286,9 @@ class TestPullRequests(DoltTestCase):
     def tearDown(self):
         """tearDown runs after every test case."""
         PullRequest.objects.all().delete()
-        Branch.objects.exclude(name=self.default).delete()
+        # Branch QuerySet deletes are not supported, delete branches individually.
+        for branch in Branch.objects.exclude(name=self.default):
+            branch.delete()
 
     def test_pull_requests_write_to_main(self):
         """test_pull_requests_write_to_main asserts that pull request objects hit the global db."""
