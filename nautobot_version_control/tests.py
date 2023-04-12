@@ -21,6 +21,21 @@ class DoltTestCase(TransactionTestCase):
 
     databases = ["default", "global"]
 
+class DoltApiTestCase(APITestCase):
+    """DoltApiTestCase wraps APITestCase tests and performs common tasks."""
+
+    def _pre_setup(self):
+        """_pre_setup runs before every testcase."""
+        super()._pre_setup()
+        # APITestCase always creates the same user in setup, so to avoid a conflict we delete it first.
+        username = "nautobotuser"
+        try:
+            user = User.objects.get(username=username)
+            print(f"user {username} exists, deleting")
+            user.delete()
+            print(f"user {username} deleted")
+        except User.DoesNotExist as exc:
+            print(f"user {username} does not exist")
 
 class TestBranches(DoltTestCase):
     """TestBranch Tests the creation and deletion of branches."""
@@ -169,7 +184,7 @@ class TestBranches(DoltTestCase):
 
 
 @override_settings(DATABASE_ROUTERS=["nautobot_version_control.routers.GlobalStateRouter"])
-class TestApp(APITestCase):
+class TestApp(DoltApiTestCase):
     """TestApp tests the availability of the root api endpoint."""
 
     databases = ["default", "global"]
@@ -183,7 +198,7 @@ class TestApp(APITestCase):
 
 
 @override_settings(DATABASE_ROUTERS=["nautobot_version_control.routers.GlobalStateRouter"])
-class TestBranchesApi(APITestCase, APIViewTestCases):
+class TestBranchesApi(DoltApiTestCase, APIViewTestCases):
     """TestBranchesApi tests the get,create,delete,etc. of the Branches api."""
 
     databases = ["default", "global"]
@@ -216,7 +231,7 @@ class TestBranchesApi(APITestCase, APIViewTestCases):
         self.assertTrue(data["count"] > 0)
 
 
-class TestPullRequestApi(APITestCase, APIViewTestCases):
+class TestPullRequestApi(DoltApiTestCase, APIViewTestCases):
     """TestPullRequestApi tests the PullRequest api."""
 
     databases = ["default", "global"]
@@ -317,7 +332,7 @@ class TestPullRequests(DoltTestCase):
 
 
 @override_settings(DATABASE_ROUTERS=["nautobot_version_control.routers.GlobalStateRouter"])
-class TestPullRequestReviewsApi(APITestCase, APIViewTestCases):
+class TestPullRequestReviewsApi(DoltApiTestCase, APIViewTestCases):
     """TestPullRequestReviewsApi tests whether the PullRequestReview model api."""
 
     databases = ["default", "global"]
@@ -355,7 +370,7 @@ class TestPullRequestReviewsApi(APITestCase, APIViewTestCases):
 
 
 @override_settings(DATABASE_ROUTERS=["nautobot_version_control.routers.GlobalStateRouter"])
-class TestCommitsApi(APITestCase, APIViewTestCases):
+class TestCommitsApi(DoltApiTestCase, APIViewTestCases):
     """TestCommitsApi tests the Commit model Api."""
 
     databases = ["default", "global"]
