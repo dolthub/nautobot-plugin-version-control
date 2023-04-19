@@ -1,3 +1,7 @@
+echo "THIS SCRIPT DOES NOT WORK ANYMORE. PLEASE USE run-hosted.sh INSTEAD."
+echo "TO RUN NAUTOBOT LOCALLY, ROLL BACK THE REPO TO AN EARLIER STATE, WHEN DOLT WAS STILL PRESENT IN DOCKER FILES."
+exit 1
+
 # Description: Run all the steps of starting nautobot
 # Main flow is outlined in README and You: https://www.youtube.com/watch?v=XHrTHwhbZLc
 
