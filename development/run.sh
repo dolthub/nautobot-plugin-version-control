@@ -4,7 +4,6 @@
 # General settings
 editor="charm"
 editor="code"
-editor="nano"
 run_command_step_num=0
 
 run_command() {
