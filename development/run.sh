@@ -1,6 +1,10 @@
 # Description: Run all the steps of starting nautobot
 # Main flow is outlined in README and You: https://www.youtube.com/watch?v=XHrTHwhbZLc
 
+# General settings
+editor="charm"
+editor="code"
+editor="nano"
 run_command_step_num=0
 
 run_command() {
@@ -20,7 +24,7 @@ run_command() {
   if [ $rc -ne 0 ]; then
     echo "Command failed with exit code $rc"
     echo "Opening $log_file in PyCharm..."
-    charm "$log_file"
+    "$editor" "$log_file"
     exit $rc
   else
     echo "Command succeeded in $duration seconds"
@@ -29,15 +33,25 @@ run_command() {
   run_command_step_num=$((run_command_step_num + 1))
 }
 
-cp ./development/creds.example.env ./development/creds.env
-
+# Clean up
 rm -rf logs
 mkdir logs
 
+# Pre-flight checks
+if [ ! -f "./development/creds.env" ]; then
+  echo "./development/creds.env file not found. Please create it - for example, by copying ./development/creds.example.env - and try again."
+  exit 1
+fi
+if [ ! -f "./development/hosted_ca.pem" ]; then
+  echo "./development/hosted_ca.pem file not found. If you encounter SSL errors, please download a copy from https://hosted.doltdb.com/deployments/ and try again."
+fi
+
+# Run commands
 run_command "invoke destroy"
 run_command "invoke build"
 run_command "invoke migrate"
 run_command "invoke load-data"
 run_command "invoke start"
 
-osascript -e "tell app \"System Events\" to display dialog \"Done!\""
+# Notify user
+# osascript -e "tell app \"System Events\" to display dialog \"Done!\""

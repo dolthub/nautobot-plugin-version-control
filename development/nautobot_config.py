@@ -60,6 +60,11 @@ DATABASES = {
         "HOST": os.getenv("DOLT_HOST", "localhost"),  # Database server
         "PORT": os.getenv("DOLT_PORT", ""),  # Database port (leave blank for default)
         "ENGINE": "django.db.backends.mysql",
+        "OPTIONS": {
+            "ssl": {
+                "ca": os.getenv("DOLT_SSL_CA", ""),
+            }
+        },
     },
     # TODO: use `nautobot_version_control.constants.GLOBAL_STATE_DB`
     "global": {
@@ -70,6 +75,11 @@ DATABASES = {
         "HOST": os.getenv("DOLT_HOST", "localhost"),  # Database server
         "PORT": os.getenv("DOLT_PORT", ""),  # Database port (leave blank for default)
         "ENGINE": "django.db.backends.mysql",
+        "OPTIONS": {
+            "ssl": {
+                "ca": os.getenv("DOLT_SSL_CA", ""),
+            }
+        },
         "TEST": {
             "MIRROR": "default",
         },
