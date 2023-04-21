@@ -552,6 +552,7 @@ def e2e_start(context, use_hosted_dolt=False):
             print("Failed to reset hosted database.")
             return
 
+    stop(context, use_hosted_dolt=use_hosted_dolt)
     destroy(context, use_hosted_dolt=use_hosted_dolt)
     build(context, use_hosted_dolt=use_hosted_dolt)
     migrate(context, use_hosted_dolt=use_hosted_dolt)
