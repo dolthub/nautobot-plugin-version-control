@@ -12,7 +12,6 @@ services:
     volumes:
       - "./nautobot_config.py:/opt/nautobot/nautobot_config.py"
       - "../:/source"
-      - "./hosted_ca.pem:/opt/nautobot/hosted_ca.pem"
   worker:
     environment:
       DATABASE_ROUTERS: "nautobot_version_control.routers.GlobalStateRouter"

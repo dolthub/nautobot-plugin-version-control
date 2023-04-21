@@ -29,6 +29,7 @@ python = "^3.7"
 nautobot = "~1.4"
 # MySQL database adapter
 mysqlclient = "^2.0.3"
+python-dotenv = "*"
 
 [tool.poetry.dev-dependencies]
 bandit = "*"
